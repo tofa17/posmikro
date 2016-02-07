@@ -59,13 +59,13 @@ abstract class Controller extends BaseController
         }
         return $next;
     }
-    protected function httpCreate($data = null){
+    protected function httpCreate($msg = null){
         $response = 
                 [
                     'status'    => true,
-                    'message'   => 'Data successfully saved',
                     'code'      => 201,
-                    'data'      => $data
+                    'message'   => 'Data successfully saved',
+                    'data'      => $msg
                 ];
         return response()->json($response, 201);
     }
@@ -73,6 +73,7 @@ abstract class Controller extends BaseController
     	$response = 
                 [
                     'status'    => true,
+                    'code'      => 200,
                     'data'		=> $msg,
                 ];
         return response()->json($response, 200);
@@ -81,9 +82,9 @@ abstract class Controller extends BaseController
     	$response = 
                 [
                     'status'    => false,
-                    'error'     => 'Bad request',
-                    'message'   => $msg,
-                    'code'      => 400
+                    'code'      => 400,
+                    'message'   => 'Bad request',
+                    'error'     => $msg
                 ];
     	return response()->json($response, 400);
     }
@@ -91,8 +92,8 @@ abstract class Controller extends BaseController
     	$response = 
                 [
                     'status'    => false,
-                    'message'   => 'Data not found',
-                    'code'      => 404
+                    'code'      => 404,
+                    'message'   => 'Data not found'
                 ];
         return response()->json($response, 404);
     }
@@ -100,9 +101,9 @@ abstract class Controller extends BaseController
     	$response = 
                 [
                     'status'    => false,
-                    'error'     => 'Field required',
                     'code'      => 402,
-                    'message'   => $msg
+                    'message'   => 'Field required',
+                    'error'     => $msg
                 ];
         return response()->json($response, 402);
     }
@@ -110,8 +111,9 @@ abstract class Controller extends BaseController
             $response = 
                 [
                     'status'    => false,
-                    'message'   => $msg,
-                    'code'      => 422
+                    'code'      => 422,
+                    'message'   => 'Unprocessable entity',
+                    'error'     => $msg
                 ];
             return response()->json($response, 422);
     }
@@ -119,9 +121,27 @@ abstract class Controller extends BaseController
         $response = 
                 [
                     'status'    => false,
-                    'message'   => 'Internal server error',
-                    'code'      => 500
+                    'code'      => 500,
+                    'message'   => 'Internal server error'
                 ];
         return response()->json($response, 500);
+    }
+    protected function httpNotAllowed(){
+        $response = 
+                [
+                    'status'    => false,
+                    'code'      => 405,
+                    'message'   => 'Method not allowed'
+                ];
+        return response()->json($response, 405);
+    }
+    protected function httpNotContent(){
+        $response = 
+                [
+                    'status'    => false,
+                    'code'      => 204,
+                    'message'   => 'No content saved'
+                ];
+        return response()->json($response, 204);
     }
 }

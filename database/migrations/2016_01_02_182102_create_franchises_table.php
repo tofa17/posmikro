@@ -17,6 +17,7 @@ class CreateFranchisesTable extends Migration
             $table->integer('franchisor_id')->unsigned()->nullable();
             $table->integer('jenis')->unsigned()->nullable();
             $table->string('logo');
+            $table->string('logo_url');
             $table->string('namausaha', 30);
             $table->timestamps();
             $table->foreign('franchisor_id')

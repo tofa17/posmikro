@@ -13,7 +13,7 @@ class JenisController extends Controller
         $this->db = new Jenis();
     }
     public function index(){
-        return $this->httpBadRequest('Unknown method');
+        return $this->httpNotAllowed();
     }
     //menampilkan semua data jenis
     public function allJenis(){

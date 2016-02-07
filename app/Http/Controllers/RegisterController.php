@@ -32,7 +32,7 @@ class RegisterController extends Controller
         }
         $salt = hash('sha256', $request->input('email').$request->input('password').time() . mt_rand());
         $new_key = substr($salt, 0, 10);
-        $password   = bcrypt($request->input('password'));
+        $password   = md5($request->input('password'));
         $email      = $request->input('email');
         $salt = hash('sha256', $email.$password.time() . mt_rand());
         $token = substr($salt, 0, 40);
@@ -60,7 +60,7 @@ class RegisterController extends Controller
                         ->subject('Registration');
                     });*/
                 $response = [
-                    'email'    => $user_id,
+                    'email'    => $email,
                     'token'    => $token,
                     'level'    => $user_id->level
                     //'key_id'   => $data->key_id
@@ -84,6 +84,8 @@ class RegisterController extends Controller
         $this->_dropProduks();
         $this->_dropOutlets();
         $this->_dropFranchisees();
+        $this->_dropBukakasirs();
+        $this->_dropPetticashs();
         return true;
     }
     function data(){
@@ -128,20 +130,39 @@ class RegisterController extends Controller
             $this->_dropMetaproduks();
             return false;
         }
+        if (!$this->_bukakasirs()) {
+            $this->_dropFranchisees();
+            $this->_dropOutlets();
+            $this->_dropKasirs();
+            $this->_dropProduks();
+            $this->_dropMetaproduks();
+            $this->_dropTransaksis();
+            return false;
+        }
+        if (!$this->_petticashs()) {
+            $this->_dropFranchisees();
+            $this->_dropOutlets();
+            $this->_dropKasirs();
+            $this->_dropProduks();
+            $this->_dropMetaproduks();
+            $this->_transaksis();
+            $this->_dropBukakasirs();
+            return false;
+        }
         return true;
     }
     ///generate table
     private function _franchisees(){
         Schema::create($this->_key.'_franchisees', function (Blueprint $table){
-            $table->increments('id');
-            $table->integer('user_id')->unsigned()->nullable()->unique();
+            $table->increments('id')->unsigned()->nullable()->unique();
+            //$table->integer('user_id')->unsigned()->nullable()->unique();
             $table->integer('franchise_id')->unsigned()->nullable();
-            $table->unique(array('user_id', 'franchise_id'));
+            $table->unique(array('id', 'franchise_id'));
             $table->string('nama', 30);
             $table->string('telepon', 20);
             $table->string('alamat', 50);
             $table->timestamps();
-            $table->foreign('user_id')
+            $table->foreign('id')
                   ->references('id')
                   ->on('users')
                   ->onUpdate('cascade')
@@ -158,6 +179,7 @@ class RegisterController extends Controller
         Schema::create($this->_key.'_kasirs', function (Blueprint $table){
             $table->increments('id')->unsigned()->nullable()->unique();
             $table->integer('outlet_id')->unsigned()->nullable()->unique();
+            $table->unique(array('id', 'outlet_id'));
             //$table->integer('user_id')
             $table->string('nama', 30);
             $table->string('telepon', 20);
@@ -187,6 +209,7 @@ class RegisterController extends Controller
             $table->increments('id');
             $table->integer('franchises_id')->unsigned()->nullable();
             //$table->integer('kasir_id')->unsigned()->nullable()->unique();
+            $table->string('namaoutlet', 10)->unique();
             $table->string('alamat', 50);
             $table->double('longitude');
             $table->double('latitude');
@@ -254,7 +277,7 @@ class RegisterController extends Controller
         Schema::table($this->_key.'_transaksis', function($table) {
             $table->foreign('produk_id')
                   ->references('id')
-                  ->on($this->_key.'_produks')
+                  ->on($this->_key.'_metaproduks')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->foreign('outlet_id')
@@ -262,6 +285,23 @@ class RegisterController extends Controller
                   ->on($this->_key.'_outlets')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
+        });
+        return true;
+    }
+    private function _bukakasirs(){
+        Schema::create($this->_key.'_bukakasirs', function (Blueprint $table){
+            $table->increments('id');
+            $table->integer('saldo');
+            $table->timestamps();
+        });
+        return true;
+    }
+    private function _petticashs(){
+        Schema::create($this->_key.'_petticashs', function (Blueprint $table){
+            $table->increments('id');
+            $table->integer('jumlah');
+            $table->string('keperluan');
+            $table->timestamps();
         });
         return true;
     }
@@ -324,5 +364,13 @@ class RegisterController extends Controller
     private function _dropTransaksis()
     {
         Schema::drop($this->_key.'_transaksis');
+    }
+    private function _dropBukakasirs()
+    {
+        Schema::drop($this->_key.'_bukakasirs');
+    }
+    private function _dropPetticashs()
+    {
+        Schema::drop($this->_key.'_petticashs');
     }
 }

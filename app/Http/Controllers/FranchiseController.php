@@ -8,57 +8,85 @@ use App\Http\Controllers\Controller;
 use Validator;
 use App\Bases\Franchise;
 use App\Bases\Franchisor;
+use App\Bases\Jenis;
 use Intervention\Image\ImageManager;
 use Storage;
+use Image;
 
 class FranchiseController extends Controller
 {
 /*    function __construct(){
         $this->middleware('AuthKeyMiddleware');
     }*/
-	public function index(){
+    public function index(){
         return $this->httpBadRequest('Unknown method');
-	}
-	public function saveFranchise(Request $request)
+    }
+    public function allFranchise(Request $request){
+        $franchises = Franchise::where('franchisor_id', $this->userID($request))->get();
+        if (empty($franchises)) {
+            return $this->httpNotFound();
+        }
+        return $this->httpOk($franchises);
+    }
+    public function saveFranchise(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-        	'jenis'			=> 'required',
-            'logo'     		=> 'image|mimes:jpg,jpeg,png|max:2000',
-            'namausaha'    	=> 'required|unique:franchises',
-            'telepon'		=> 'required',
-            'alamat'		=> 'required|max:50'
+/*        $validator = Validator::make($request->all(), [
+            'jenis'         => 'required|integer',
+            'namausaha'     => 'required|unique:franchises',
+            'telepon'       => 'required',
+            'alamat'        => 'required|max:50'
         ]);
         if ($validator->fails()) {
             $message = $validator->errors();
             return $this->httpUnprocessableEntity($message);
         }
+        $jenis      = $request->input('jenis');
+        $namausaha  = $request->input('namausaha');
+        $telepon    = $request->input('telepon');
+        $alamat     = $request->input('alamat');
+        $image      = $request->input('logo');
+*/
 
-        //print_r($this->userID($request)); exit();
-        //$input = $request->all();
-        //print_r($this->keyID($request)); exit();
-        $jenis 		= $request->input('jenis');
-        $namausaha 	= $request->input('namausaha');
-        $telepon	= $request->input('telepon');
-        $alamat		= $request->input('alamat');
+        $validator = Validator::make($request->all(), [
+            'logo' => 'image|mimes:jpg,jpeg,png|max:2000'
+        ]);
+        if ($validator->fails()) {
+            $message = $validator->errors();
+            return $this->httpUnprocessableEntity($message);
+        }
+        $jenis      = $request->header('jenis');
+        $namausaha  = $request->header('namausaha');
+        $telepon    = $request->header('telepon');
+        $alamat     = $request->header('alamat');
         $image      = $request->file('logo');
+        $cek = Jenis::where('id', $jenis)->first();
+        if (empty($cek)) {
+            return $this->httpUnprocessableEntity('Id jenis tidak valid');
+        }
         $db = new Franchise();
-        $db->jenis 			= $jenis;
-        $db->namausaha 		= $namausaha;
-        $db->franchisor_id 	= $this->userID($request);
+        $db->jenis          = $jenis;
+        $db->namausaha      = $namausaha;
+        $db->franchisor_id  = $this->userID($request);
         $franchisor = new Franchisor();
         $franchisor->where('id', $this->userID($request))
                    ->update(['alamat' => $alamat, 'telepon' => $telepon]);
         if ($image) {
-            $salt = hash('sha256', $image->getClientOriginalName().time() . mt_rand());
+            //$image ='data:image/jpeg;base64,' .base64_encode($image);
+            /*header("Content-type: image/jpeg");
+            $image = Image::make($image);
+            $image = $image->response('jpg', 70);*/
+            $salt = hash('sha256', time() . mt_rand());
             $link = substr($salt, 0, 40).".png";
             $resizedImage   =   $this->resize($image, 500, 500, $link);
             if(!$resizedImage)
             {
                 return response()->json(['status' => false, 'msg' => 'gagal'], 204);
             }
-            $db->logo   = $link;
-            //$konten->image_url    = url('api/image/'.$link);
+            $db->logo      = $link;
+            $db->logo_url  = url('api/logo/'.$link);
         }
+        $db->logo      = "avatar.png";
+        $db->logo_url  = url('api/logo/avatar.png');
         if ($db->save()) {
             return $this->httpCreate();
         }

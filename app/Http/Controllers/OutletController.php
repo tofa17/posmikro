@@ -40,44 +40,68 @@ class OutletController extends Controller
             [
                 // 'email'     => 'required|email|unique:users',
                 // 'password'  => 'required|min:6|max:10|alpha_num',
-                'alamat'       => 'required|max:50|alpha_num',
-                'franchise_id' => 'integer'
+                'alamat'        => 'required|max:50',
+                'franchises_id' => 'integer'
             ]);
         if ($validator->fails()) {
             $message = $validator->errors();
             return $this->httpUnprocessableEntity($message);
         }
-        $alamat = $request->input('alamat');
-        $franchise_id = $request->input('franchise_id');
-        //print_r($kasir_id); exit();
-        // print_r($this->keyID($request)); exit();
-
-        if ($franchise_id) {
-            $data = DB::table($this->keyID($request).'_outlets')->insert(
+        $alamat          = $request->input('alamat');
+        $franchises_id   = $request->input('franchises_id');
+        $count = DB::table($this->keyID($request).'_outlets')->count();
+        if (is_null($count)) {
+            $count = 1;
+        }
+        $count = $count + 1;
+        if ($franchises_id) {
+            //cek franchisee
+            $cek = DB::table($this->keyID($request).'_franchisees')
+                        ->where('id', $franchises_id)
+                        ->get();
+            if (empty($cek)) {
+                return $this->httpUnprocessableEntity('Id franchises not valid');
+            }
+            //insert data outlet with franchise
+            $insert = DB::table($this->keyID($request).'_outlets')->insert(
                     [
-                        'franchise_id'  => $franchise_id,
-                        'alamat'        => $alamat
+                        'franchises_id'  => $franchises_id,
+                        'alamat'         => $alamat,
+                        'namaoutlet'     => 'OT'.$count
                     ]);
         }
-        $data = DB::table($this->keyID($request).'_outlets')->insert(
+        else{
+            $insert = DB::table($this->keyID($request).'_outlets')->insert(
                     [
-                        'alamat'        => $alamat
+                        'alamat'        => $alamat,
+                        'namaoutlet'    => 'OT'.$count
                     ]);
-        if (!$data) {
+        }
+        if (!$insert) {
             return $this->httpServerError();
         }
-        $outlet_id = DB::table($this->keyID($request).'_outlets')->value('id')->desc();
-        print_r($outlet_id); exit();
+        //abil id outlet yang baru dibuat
+        $outlet_id = DB::table($this->keyID($request).'_outlets')
+                        ->orderBy('id', 'desc')
+                        ->value('id');
+        //ambil data produk
         $data = DB::table($this->keyID($request).'_produks')
-                ->select('id')
                 ->get();
-        foreach ($data as $key => $value) {
-            DB::table($this->keyID($request).'_metaproduks')->insert
-            ([
-                'produk_id' => $data
-            ]);
+        //input data produk
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+                $input = DB::table($this->keyID($request).'_metaproduks')->insert
+                            ([
+                                'outlet_id' => $outlet_id,
+                                'produk_id' => $value->id,
+                                'harga'     => $value->harga,
+                                'diskon'    => $value->diskon
+                            ]);
+            }
+            if ($input) {
+                return $this->httpCreate();
+            }
         }
-
         return $this->httpCreate();
     }
 

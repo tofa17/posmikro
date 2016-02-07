@@ -13,7 +13,7 @@ class LogController extends Controller
 {
     function __construct()
     {
-        $this->middleware('AuthLoginMiddleware', ['only' => ['logout']]);
+        $this->middleware('AuthKeyMiddleware', ['only' => ['logout']]);
     }
     public function index(){
         return $this->httpBadRequest('Unknown method');
@@ -29,12 +29,17 @@ class LogController extends Controller
             return $this->httpPaymentRequired($errors);
         }
         $email      = $request->input('email');
-        $password   = $request->input('password');
-        $data = array(
+        $password   = md5($request->input('password'));
+/*        $data = array(
             'email'     => $email,
             'password'  => $password
-        );
-        if ($data = Auth::attempt($data)) {
+        );*/
+        $data = User::where('email', $email)
+                ->where('password', $password)
+                ->first();
+//        if ($data = Auth::attempt($data)) {
+        //print_r($data); exit();
+        if (!empty($data)) {
             $salt = hash('sha256', $email.$password.time() . mt_rand());
             $token = substr($salt, 0, 40);
             
@@ -62,8 +67,8 @@ class LogController extends Controller
         else{
             $remember_token = $request->header('x-auth-login');  
         }
-        User::where('remember_token', $remember_token)
-                    ->update(['remember_token' => null]);
+        Token::where('token', $remember_token)
+                    ->update(['token' => null]);
         return $this->httpOk();
     }
 }

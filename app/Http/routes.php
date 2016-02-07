@@ -14,7 +14,10 @@
 Route::get('/', function () {
     return view('welcome');
 });
-
+    Route::group(['prefix' => 'api/image'], function()
+    {
+        Route::get('{image}', ['uses' => 'ProdukController@getImage']);
+    });
 Route::get('/key', ['uses' => 'KeyController@allKey']);
 Route::post('/key', ['uses' => 'KeyController@createnewKey']);
 Route::delete('/key/{id}', ['uses' => 'KeyController@deleteKey']);
@@ -22,8 +25,22 @@ Route::delete('/key/{id}', ['uses' => 'KeyController@deleteKey']);
 // Route::post('auth/login', 'LogController@login');
 // Route::get('auth/logout', 'LogController@logout');
 // Route::post('auth/register', 'LogController@register');
-
-
+Route::group(['prefix' => 'api/franchise'], function()
+{
+    Route::get('', ['uses' => 'FranchiseController@allFranchise']);
+    Route::get('{id}', ['uses' => 'FranchiseController@index']);
+    Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
+    Route::put('{id}', ['uses' => 'FranchiseController@index']);
+    Route::delete('{id}', ['uses' => 'FranchiseController@index']);
+});
+Route::group(['prefix' => 'franchise'], function()
+{
+    Route::get('', ['uses' => 'FranchiseController@allFranchise']);
+    Route::get('{id}', ['uses' => 'FranchiseController@index']);
+    Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
+    Route::put('{id}', ['uses' => 'FranchiseController@index']);
+    Route::delete('{id}', ['uses' => 'FranchiseController@index']);
+});
 Route::group(['prefix' => 'api', 'middleware' => 'CekMiddleware'], function()
 {
     Route::group(['prefix' => 'auth'], function()
@@ -43,11 +60,10 @@ Route::group(['prefix' => 'api', 'middleware' => 'CekMiddleware'], function()
         });
         Route::group(['prefix' => 'logout'], function()
         {
-            Route::get('', ['uses' => 'LogController@index']);
-            Route::post('', ['uses' => 'LogController@logout']);
+            Route::get('', ['uses' => 'LogController@logout']);
+            Route::post('', ['uses' => 'LogController@index']);
         });
     });
-//jenis usaha
     Route::group(['prefix' => 'konfig'], function()
     {
         Route::group(['prefix' => 'jenisusaha'], function()
@@ -59,53 +75,9 @@ Route::group(['prefix' => 'api', 'middleware' => 'CekMiddleware'], function()
             Route::delete('{id}', ['uses' => 'JenisController@deleteJenis']);
         });
     });
-//produk
-    Route::group(['prefix' => 'produk'], function()
-    {
-        Route::get('', ['uses' => 'ProdukController@allProduk']);
-        Route::get('{id}', ['uses' => 'ProdukController@getProduk']);
-        Route::post('', ['uses' => 'ProdukController@saveProduk']);
-        Route::put('{id}', ['uses' => 'ProdukController@updateProduk']);
-        Route::delete('{id}', ['uses' => 'ProdukController@deleteProduk']);
-    });
-//franchise
-/*    Route::group(['prefix' => 'franchise'], function()
-    {
-        Route::get('', ['uses' => 'FranchiseController@index']);
-        Route::get('{id}', ['uses' => 'FranchiseController@index']);
-        Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
-        Route::put('{id}', ['uses' => 'FranchiseController@index']);
-        Route::delete('{id}', ['uses' => 'FranchiseController@index']);
-    });*/
-//akses admin with auth middleware
-    Route::group(['prefix' => 'control-admin'], function()
-    {
-        Route::post('/login', ['uses' => 'SadminController@login']);
-        Route::get('data', ['uses' => 'SadminController@allAdmin']);
-        Route::get('data/{id}', ['uses' => 'SadminController@getAdmin']);
-        Route::post('data', ['uses' => 'SadminController@saveAdmin']);
-        Route::put('data/{id}', ['uses' => 'SadminController@updateEmail']);
-        Route::delete('data/{id}', ['uses' => 'SadminController@deleteAdmin']);
-//create new auth key
-        Route::get('/key', ['uses' => 'KeyController@allKey']);
-        Route::post('/key', ['uses' => 'KeyController@createnewKey']);
-        Route::delete('/key/{id}', ['uses' => 'KeyController@deleteKey']);
-//migrate table
-        Route::get('/migrate', ['uses' => 'KonfigurasiController@Konfigurasi']);
-    });
-//akses franchisor with auth middleware
     Route::group(['prefix' => 'franchisor', 'middleware' => 'FranchisorMiddleware'], function()
     {
-        //franchise
-        Route::group(['prefix' => 'franchise'], function()
-        {
-            Route::get('', ['uses' => 'FranchiseController@index']);
-            Route::get('{id}', ['uses' => 'FranchiseController@index']);
-            Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
-            Route::put('{id}', ['uses' => 'FranchiseController@index']);
-            Route::delete('{id}', ['uses' => 'FranchiseController@index']);
-        });
-        //jeniausaha
+        //jenisusaha
         Route::group(['prefix' => 'jenisusaha'], function()
         {
             Route::get('', ['uses' => 'JenisController@allJenis']);
@@ -113,6 +85,24 @@ Route::group(['prefix' => 'api', 'middleware' => 'CekMiddleware'], function()
             Route::post('', ['uses' => 'JenisController@saveJenis']);
             Route::put('{id}', ['uses' => 'JenisController@updateJenis']);
             Route::delete('{id}', ['uses' => 'JenisController@deleteJenis']);
+        });
+        //franchise
+        Route::group(['prefix' => 'franchise'], function()
+        {
+            Route::get('', ['uses' => 'FranchiseController@allFranchise']);
+            Route::get('{id}', ['uses' => 'FranchiseController@index']);
+            Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
+            Route::put('{id}', ['uses' => 'FranchiseController@index']);
+            Route::delete('{id}', ['uses' => 'FranchiseController@index']);
+        });
+        //produk
+        Route::group(['prefix' => 'produk'], function()
+        {
+            Route::get('', ['uses' => 'ProdukController@allProduk']);
+            Route::get('{id}', ['uses' => 'ProdukController@getProduk']);
+            Route::post('', ['uses' => 'ProdukController@saveProduk']);
+            Route::put('{id}', ['uses' => 'ProdukController@updateProduk']);
+            Route::delete('{id}', ['uses' => 'ProdukController@deleteProduk']);
         });
         //outlet
         Route::group(['prefix' => 'outlet'], function()
@@ -158,8 +148,56 @@ Route::group(['prefix' => 'api', 'middleware' => 'CekMiddleware'], function()
         });
     });
 //get image
-    Route::group(['prefix' => 'image'], function()
+/*    Route::group(['prefix' => 'image'], function()
     {
         Route::get('{image}', ['uses' => 'BarangController@getImage']);
-    });
+    });*/
+//jenis usaha
+/*    Route::group(['prefix' => 'konfig'], function()
+    {
+        Route::group(['prefix' => 'jenisusaha'], function()
+        {
+            Route::get('', ['uses' => 'JenisController@allJenis']);
+            Route::get('{id}', ['uses' => 'JenisController@getJenis']);
+            Route::post('', ['uses' => 'JenisController@saveJenis']);
+            Route::put('{id}', ['uses' => 'JenisController@updateJenis']);
+            Route::delete('{id}', ['uses' => 'JenisController@deleteJenis']);
+        });
+    });*/
+//produk
+/*    Route::group(['prefix' => 'produk'], function()
+    {
+        Route::get('', ['uses' => 'ProdukController@allProduk']);
+        Route::get('{id}', ['uses' => 'ProdukController@getProduk']);
+        Route::post('', ['uses' => 'ProdukController@saveProduk']);
+        Route::put('{id}', ['uses' => 'ProdukController@updateProduk']);
+        Route::delete('{id}', ['uses' => 'ProdukController@deleteProduk']);
+    });*/
+//franchise
+/*    Route::group(['prefix' => 'franchise'], function()
+    {
+        Route::get('', ['uses' => 'FranchiseController@index']);
+        Route::get('{id}', ['uses' => 'FranchiseController@index']);
+        Route::post('', ['uses' => 'FranchiseController@saveFranchise']);
+        Route::put('{id}', ['uses' => 'FranchiseController@index']);
+        Route::delete('{id}', ['uses' => 'FranchiseController@index']);
+    });*/
+//akses admin with auth middleware
+/*    Route::group(['prefix' => 'control-admin'], function()
+    {
+        Route::post('/login', ['uses' => 'SadminController@login']);
+        Route::get('data', ['uses' => 'SadminController@allAdmin']);
+        Route::get('data/{id}', ['uses' => 'SadminController@getAdmin']);
+        Route::post('data', ['uses' => 'SadminController@saveAdmin']);
+        Route::put('data/{id}', ['uses' => 'SadminController@updateEmail']);
+        Route::delete('data/{id}', ['uses' => 'SadminController@deleteAdmin']);
+//create new auth key
+        Route::get('/key', ['uses' => 'KeyController@allKey']);
+        Route::post('/key', ['uses' => 'KeyController@createnewKey']);
+        Route::delete('/key/{id}', ['uses' => 'KeyController@deleteKey']);
+//migrate table
+        Route::get('/migrate', ['uses' => 'KonfigurasiController@Konfigurasi']);
+    });*/
+//akses franchisor with auth middleware
+
 });
